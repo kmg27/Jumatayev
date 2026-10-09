@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Производственная панель НПЗ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F0F6FF; --surface:#FFFFFF; --surface-alt:#F7FAFF; --border:#DCE7F7;
+  --primary:#1D4ED8; --primary-dark:#0B2A6B; --accent:#0EA5E9; --primary-light:#BFDBFE;
+  --text:#0F2747; --text-muted:#5B7299;
+  --success:#16A34A; --warning:#D97706; --danger:#DC2626;
+  --chart-1:#1D4ED8; --chart-2:#2563EB; --chart-3:#0EA5E9; --chart-4:#38BDF8;
+  --chart-5:#7DD3FC; --chart-6:#1E3A8A; --chart-7:#93C5FD;
+  --k:1;
+  --font:Inter,"Segoe UI",Roboto,Arial,sans-serif;
+}
+html{font-size:clamp(14px,.8333vw,64px)}
+html.tv{--k:1.25}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+button,select{font-family:inherit}
+
+.app{height:100vh;min-height:50rem;display:grid;grid-template-rows:4.5rem 3px minmax(0,1fr) 2.5rem}
+
+/* ---------- Шапка ---------- */
+.hdr{background:linear-gradient(90deg,#0B2A6B 0%,#1D4ED8 100%);color:#fff;display:flex;align-items:center;
+  gap:1.5rem;padding:0 1.5rem}
+.brand{display:flex;align-items:center;gap:.875rem;min-width:0}
+.logo{width:2.5rem;height:2.5rem;flex:none}
+.brand h1{margin:0;font-size:calc(1.375rem*var(--k));font-weight:600;white-space:nowrap;letter-spacing:-.01em}
+.brand .sub{font-size:calc(.8125rem*var(--k));opacity:.8;margin-top:.125rem}
+.period{margin-left:auto;font-size:calc(1rem*var(--k));font-weight:600;white-space:nowrap;
+  padding:.375rem .875rem;border-radius:999px;background:rgba(255,255,255,.12)}
+.controls{display:flex;align-items:center;gap:.75rem}
+.seg{display:flex;background:rgba(255,255,255,.15);border-radius:.625rem;padding:.1875rem}
+.seg button{border:0;background:transparent;color:#fff;font-size:.875rem;font-weight:500;padding:.4375rem .875rem;
+  border-radius:.5rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--primary)}
+.seg button:focus-visible,.hdr select:focus-visible,.iconbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hdr select{appearance:none;-webkit-appearance:none;border:0;border-radius:.625rem;background:rgba(255,255,255,.15)
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right .75rem center;
+  color:#fff;font-size:.875rem;font-weight:500;padding:.5625rem 2.25rem .5625rem .875rem;cursor:pointer}
+.hdr select option{color:var(--text)}
+.iconbtn{display:flex;align-items:center;gap:.5rem;border:0;border-radius:.625rem;background:rgba(255,255,255,.15);
+  color:#fff;font-size:.875rem;font-weight:500;padding:.5rem .875rem;cursor:pointer}
+.iconbtn:hover,.hdr select:hover,.seg button:not([aria-pressed="true"]):hover{background:rgba(255,255,255,.25)}
+.iconbtn svg{width:1.125rem;height:1.125rem}
+.clock{font-size:calc(.9375rem*var(--k));font-weight:500;white-space:nowrap;opacity:.95;min-width:9.5rem;text-align:right}
+
+.tvprog{background:transparent;position:relative;overflow:hidden}
+.tvprog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent)}
+
+/* ---------- Основная сетка ---------- */
+main{padding:1rem 1.5rem;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);gap:1rem;min-height:0}
+.kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 2px 8px rgba(29,78,216,.06);padding:1rem 1.125rem;min-width:0;min-height:0;display:flex;flex-direction:column}
+.card-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;min-height:1.5rem}
+.card-head h2{margin:0;font-size:calc(.9375rem*var(--k));font-weight:600;color:var(--primary-dark)}
+.card-head .hint{font-size:calc(.75rem*var(--k));color:var(--text-muted);margin-left:auto;white-space:nowrap}
+.info{display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;border-radius:50%;
+  border:1.5px solid var(--text-muted);color:var(--text-muted);font-size:.6875rem;font-weight:700;cursor:help;flex:none;
+  font-style:normal;line-height:1}
+.chart-box{position:relative;flex:1;min-height:0}
+.no-charts .chart-box::after{content:"Графики недоступны: библиотека Chart.js не загружена";position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.8125rem;text-align:center}
+.b1{grid-column:span 6}.b2{grid-column:span 3}.b3{grid-column:span 3}
+.b4{grid-column:span 3}.b5{grid-column:span 5}.b6{grid-column:span 4}
+
+/* ---------- KPI ---------- */
+.kpi{position:relative;overflow:hidden;padding:.875rem 1.125rem .875rem 1.375rem;gap:.375rem}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--st,var(--primary-light))}
+.kpi[data-status="ok"]{--st:var(--success)}
+.kpi[data-status="warn"]{--st:var(--warning)}
+.kpi[data-status="bad"]{--st:var(--danger)}
+.kpi-head{display:flex;align-items:center;gap:.5rem}
+.kpi-title{font-size:calc(.875rem*var(--k));color:var(--text-muted);font-weight:500}
+.kpi-head .info{margin-left:auto}
+.kpi-value{display:flex;align-items:baseline;gap:.375rem;line-height:1.05}
+.kpi-value .num{font-size:calc(2.5rem*var(--k));font-weight:700;color:var(--primary-dark);letter-spacing:-.02em}
+.kpi-value .unit{font-size:calc(.9375rem*var(--k));color:var(--text-muted);font-weight:500}
+.kpi-plan{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-size:calc(.8125rem*var(--k));color:var(--text-muted)}
+.kpi-visual{display:flex;align-items:center;gap:.625rem;min-height:2rem}
+.kpi-visual .pcttxt{font-size:calc(.8125rem*var(--k));font-weight:600;color:var(--primary-dark);min-width:3.25rem;text-align:right}
+.kpi-extra{font-size:calc(.75rem*var(--k));color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-extra b{color:var(--text);font-weight:600}
+.spark{flex:1;height:2rem;display:block;overflow:visible}
+
+.badge{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;padding:.1875rem .5rem;
+  font-size:calc(.8125rem*var(--k));font-weight:600;white-space:nowrap}
+.badge.ok{color:var(--success);background:rgba(22,163,74,.12)}
+.badge.warn{color:var(--warning);background:rgba(217,119,6,.12)}
+.badge.bad{color:var(--danger);background:rgba(220,38,38,.12)}
+.st-ok{color:var(--success)}.st-warn{color:var(--warning)}.st-bad{color:var(--danger)}
+
+.bar{flex:1;height:6px;background:var(--primary-light);border-radius:3px;position:relative}
+.bar>i{display:block;height:100%;background:var(--primary);border-radius:3px;transition:width .4s ease}
+.bar>b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--primary-dark);border-radius:1px;transform:translateX(-1px)}
+
+/* ---------- Спидометры ---------- */
+.gauges{flex:1;display:flex;flex-direction:column;min-height:0;gap:.625rem}
+.gauge{flex:1;display:flex;flex-direction:column;min-height:0}
+.gauge-label{font-size:calc(.8125rem*var(--k));color:var(--text-muted);font-weight:500;text-align:left;height:0;overflow:visible;position:relative;z-index:1}
+
+/* ---------- Структура выпуска ---------- */
+.donut-wrap{flex:1;display:flex;align-items:center;min-height:0;gap:.5rem}
+.donut-wrap .chart-box{flex:1 1 45%;height:100%;min-width:0}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.1875rem;flex:0 0 56%;min-width:0}
+.legend li{display:grid;grid-template-columns:.625rem 1fr auto 2.75rem;align-items:center;gap:.375rem;
+  font-size:calc(.75rem*var(--k));padding:.125rem .375rem;border-radius:6px;cursor:default}
+.legend li.hl{background:#E6EFFF}
+.legend .dot{width:.625rem;height:.625rem;border-radius:50%}
+.legend .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legend .v{font-weight:600;text-align:right}
+.legend .s{color:var(--text-muted);text-align:right}
+
+/* ---------- Таблица продукции ---------- */
+.switch{display:inline-flex;align-items:center;gap:.5rem;margin-left:auto;font-size:calc(.75rem*var(--k));color:var(--text-muted);cursor:pointer;user-select:none}
+.switch input{appearance:none;-webkit-appearance:none;width:2rem;height:1.125rem;border-radius:999px;background:var(--primary-light);
+  position:relative;cursor:pointer;margin:0;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:calc(1.125rem - 4px);height:calc(1.125rem - 4px);
+  border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked{background:var(--primary)}
+.switch input:checked::after{transform:translateX(.875rem)}
+.switch input:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.table-wrap{flex:1;overflow:auto;min-height:0;border:1px solid var(--border);border-radius:8px}
+.ptable{width:100%;border-collapse:separate;border-spacing:0;font-size:calc(.875rem*var(--k))}
+.ptable th{position:sticky;top:0;z-index:2;background:var(--surface-alt);border-bottom:1px solid var(--border);
+  font-weight:600;color:var(--text-muted);font-size:calc(.75rem*var(--k));text-align:right;padding:0;white-space:nowrap}
+.ptable th.l{text-align:left}
+.ptable th button{all:unset;display:block;width:100%;box-sizing:border-box;padding:.5rem .625rem;cursor:pointer}
+.ptable th button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+.ptable th button:hover{color:var(--primary)}
+.ptable th .si{display:inline-block;width:.75rem;color:var(--primary)}
+.ptable td{padding:.3125rem .625rem;text-align:right;border-bottom:1px solid #EEF3FB;white-space:nowrap}
+.ptable td.l{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:14rem}
+.ptable tbody tr:nth-child(even) td{background:var(--surface-alt)}
+.ptable tr.hl td{background:#E6EFFF!important}
+.ptable tr.grp td{background:#EAF2FF!important;font-weight:600;color:var(--primary-dark);border-top:1px solid var(--border)}
+.ptable tr.svc td{color:var(--text-muted)}
+.ptable tr.svc.grp td{background:#F1F4F9!important;color:var(--text-muted)}
+.ptable td .fact{font-weight:700}
+.ptable tfoot td{position:sticky;bottom:0;background:var(--primary-dark);color:#fff;font-weight:700;border:0}
+.ptable tfoot td .st-ok,.ptable tfoot td .st-warn,.ptable tfoot td .st-bad{color:#fff}
+.gdot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.5rem;vertical-align:middle;transform:translateY(-1px)}
+.g-light{background:var(--primary)}.g-dark{background:var(--text-muted)}.g-other{background:var(--accent)}.g-service{background:#C3CFE2}
+.pc{display:flex;align-items:center;gap:.5rem;justify-content:flex-end}
+.pc span{min-width:3.25rem}
+.mbar{width:4.5rem;height:6px;border-radius:3px;background:var(--primary-light);position:relative;flex:none}
+.mbar i{display:block;height:100%;border-radius:3px;background:var(--primary)}
+.mbar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--primary-dark)}
+tfoot .mbar{background:rgba(255,255,255,.3)}tfoot .mbar i{background:#fff}tfoot .mbar b{background:#7DD3FC}
+
+/* ---------- Лента событий ---------- */
+.events{display:flex;align-items:center;gap:1rem;background:var(--surface);border-top:1px solid var(--border);padding:0 1.5rem;
+  overflow:hidden;font-size:calc(.8125rem*var(--k))}
+.ev-label{font-weight:600;color:var(--primary-dark);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;font-size:calc(.6875rem*var(--k))}
+.ev-track{flex:1;overflow:hidden;min-width:0}
+.ev-inner{display:inline-flex;gap:2rem;white-space:nowrap}
+.ev{display:inline-flex;align-items:center;gap:.5rem}
+.ev .d{width:.5rem;height:.5rem;border-radius:50%;flex:none}
+.ev .m{font-weight:600;color:var(--primary-dark)}
+.ev .p{font-size:.6875rem;font-weight:600;color:var(--accent);border:1px solid currentColor;border-radius:4px;padding:0 .25rem}
+.d-info{background:var(--accent)}.d-success{background:var(--success)}.d-warning{background:var(--warning)}.d-danger{background:var(--danger)}
+.ev-empty{color:var(--text-muted)}
+.ev-inner.marquee{animation:marquee var(--dur,30s) linear infinite}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---------- TV-режим ---------- */
+html.tv .controls{display:none}
+html.tv .info,html.tv .switch,html.tv .card-head .hint{display:none}
+html.tv .ptable th button{cursor:default;pointer-events:none}
+html.tv .ptable th .si{display:none}
+html.tv.cursor-hidden,html.tv.cursor-hidden *{cursor:none!important}
+
+/* ---------- Плашка узкого экрана ---------- */
+.narrow{position:fixed;inset:0;background:rgba(11,42,107,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
+.narrow.show{display:flex}
+.narrow div{background:#fff;border-radius:12px;padding:1.5rem;max-width:26rem;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.narrow p{margin:0 0 1rem;color:var(--text)}
+.narrow button{border:0;background:var(--primary);color:#fff;border-radius:8px;padding:.5rem 1.25rem;font-size:.875rem;cursor:pointer}
+
+
+/* ---------- Печать ---------- */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  html{font-size:9px}
+  body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .app{height:auto;min-height:0;display:block}
+  .hdr{background:#fff!important;color:var(--primary-dark);height:3rem;padding:0;border-bottom:2px solid var(--primary)}
+  .period{background:none;color:var(--primary)}
+  .controls,.tvprog,.events,.info,.switch,.narrow{display:none!important}
+  main{padding:.75rem 0;grid-template-rows:auto 20rem 22rem}
+  .card{box-shadow:none;break-inside:avoid}
+  .table-wrap{overflow:visible}
+  .ptable th,.ptable tfoot td{position:static}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hdr">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="20" fill="#fff" fill-opacity=".18"/>
+        <circle cx="20" cy="20" r="16" fill="#1D4ED8" stroke="#fff" stroke-opacity=".6"/>
+        <path d="M20 9.5c4.6 5.9 7 9.4 7 12.8a7 7 0 0 1-14 0c0-3.4 2.4-6.9 7-12.8z" fill="#fff"/>
+        <path d="M17 22.5a3.2 3.2 0 0 0 3 3" stroke="#1D4ED8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1 id="hdrTitle"></h1>
+        <div class="sub" id="hdrSub"></div>
+      </div>
+    </div>
+    <div class="period" id="periodLabel"></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Режим периода">
+        <button type="button" data-mode="month" aria-pressed="false" aria-label="Режим: месяц">Месяц</button>
+        <button type="button" data-mode="ytd" aria-pressed="true" aria-label="Режим: с начала года">С начала года</button>
+      </div>
+      <select id="monthSel" aria-label="Выбор месяца"></select>
+      <button type="button" class="iconbtn" id="tvBtn" aria-label="Включить TV-режим (клавиша T)" title="TV-режим (T)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        TV
+      </button>
+    </div>
+    <div class="clock" id="clock" aria-live="off"></div>
+  </header>
+  <div class="tvprog" aria-hidden="true"><i id="tvProg"></i></div>
+
+  <main>
+    <section class="kpis" aria-label="Ключевые показатели">
+      <article class="card kpi" id="k1">
+        <div class="kpi-head"><span class="kpi-title">Переработка нефти</span><i class="info" title="Объём нефти, поступившей на первичную переработку. Выполнение плана = факт / план × 100">i</i></div>
+        <div class="kpi-value"><span class="num"></span><span class="unit">тыс. т</span></div>
+        <div class="kpi-plan"><span class="plan-txt"></span><span class="badge"></span></div>
+        <div class="kpi-visual"></div>
+        <div class="kpi-extra"></div>
+      </article>
+      <article class="card kpi" id="k2">
+        <div class="kpi-head"><span class="kpi-title">Глубина переработки</span><i class="info" title="(V − мазут − топливо на собств. нужды − потери) / V × 100">i</i></div>
+        <div class="kpi-value"><span class="num"></span><span class="unit">%</span></div>
+        <div class="kpi-plan"><span class="plan-txt"></span><span class="badge"></span></div>
+        <div class="kpi-visual"></div>
+        <div class="kpi-extra"></div>
+      </article>
+      <article class="card kpi" id="k3">
+        <div class="kpi-head"><span class="kpi-title">Выход светлых нефтепродуктов</span><i class="info" title="Σ светлых нефтепродуктов / V × 100">i</i></div>
+        <div class="kpi-value"><span class="num"></span><span class="unit">%</span></div>
+        <div class="kpi-plan"><span class="plan-txt"></span><span class="badge"></span></div>
+        <div class="kpi-visual"></div>
+        <div class="kpi-extra"></div>
+      </article>
+      <article class="card kpi" id="k4">
+        <div class="kpi-head"><span class="kpi-title">Товарная продукция</span><i class="info" title="Сумма светлых, тёмных и прочих товарных продуктов (без собственных нужд и потерь)">i</i></div>
+        <div class="kpi-value"><span class="num"></span><span class="unit">тыс. т</span></div>
+        <div class="kpi-plan"><span class="plan-txt"></span><span class="badge"></span></div>
+        <div class="kpi-visual"></div>
+        <div class="kpi-extra"></div>
+      </article>
+      <article class="card kpi" id="k5">
+        <div class="kpi-head"><span class="kpi-title">Загрузка мощностей</span><i class="info" title="V / (проектная мощность × дней в периоде / 365) × 100">i</i></div>
+        <div class="kpi-value"><span class="num"></span><span class="unit">%</span></div>
+        <div class="kpi-plan"><span class="plan-txt"></span><span class="badge"></span></div>
+        <div class="kpi-visual"></div>
+        <div class="kpi-extra"></div>
+      </article>
+    </section>
+
+    <section class="card b1">
+      <div class="card-head"><h2>Переработка нефти по месяцам, тыс. т</h2><i class="info" title="Столбцы — план и факт по месяцам; линия — накопленное выполнение плана с начала года (правая ось). Клик по столбцу — выбор месяца">i</i></div>
+      <div class="chart-box"><canvas id="c1" aria-label="Переработка нефти по месяцам" role="img"></canvas></div>
+    </section>
+    <section class="card b2">
+      <div class="card-head"><h2>Глубина переработки и выход светлых, %</h2><i class="info" title="Сплошная линия — факт, пунктир — план. Красный маркер — месяц ниже плана">i</i></div>
+      <div class="chart-box"><canvas id="c2" aria-label="Динамика глубины переработки и выхода светлых" role="img"></canvas></div>
+    </section>
+    <section class="card b3">
+      <div class="card-head"><h2>Эффективность за период</h2><span class="hint" id="b3hint"></span></div>
+      <div class="gauges">
+        <div class="gauge"><div class="gauge-label">Глубина переработки</div><div class="chart-box"><canvas id="g1" aria-label="Спидометр глубины переработки" role="img"></canvas></div></div>
+        <div class="gauge"><div class="gauge-label">Выход светлых нефтепродуктов</div><div class="chart-box"><canvas id="g2" aria-label="Спидометр выхода светлых" role="img"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="card b4">
+      <div class="card-head"><h2>Структура выпуска</h2><i class="info" title="Доли видов товарной продукции за выбранный период. Наведение подсвечивает строки таблицы">i</i></div>
+      <div class="donut-wrap">
+        <div class="chart-box"><canvas id="c4" aria-label="Структура выпуска продукции" role="img"></canvas></div>
+        <ul class="legend" id="legend4"></ul>
+      </div>
+    </section>
+    <section class="card b5">
+      <div class="card-head"><h2>Выпуск продукции по видам, тыс. т</h2>
+        <label class="switch"><input type="checkbox" id="groupToggle" checked aria-label="Группировать по видам">Группировать</label>
+      </div>
+      <div class="table-wrap">
+        <table class="ptable" id="prodTable">
+          <thead><tr>
+            <th class="l"><button type="button" data-key="name" aria-label="Сортировать по названию">Продукт<span class="si"></span></button></th>
+            <th><button type="button" data-key="plan" aria-label="Сортировать по плану">План<span class="si"></span></button></th>
+            <th><button type="button" data-key="fact" aria-label="Сортировать по факту">Факт<span class="si"></span></button></th>
+            <th><button type="button" data-key="dev" aria-label="Сортировать по отклонению">Откл.<span class="si"></span></button></th>
+            <th><button type="button" data-key="pct" aria-label="Сортировать по выполнению">Выполнение<span class="si"></span></button></th>
+            <th><button type="button" data-key="share" aria-label="Сортировать по доле">Доля<span class="si"></span></button></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+          <tfoot id="tfoot"></tfoot>
+        </table>
+      </div>
+    </section>
+    <section class="card b6">
+      <div class="card-head"><h2>Выпуск основных продуктов по месяцам, тыс. т</h2><i class="info" title="Клик по легенде скрывает или показывает серию">i</i></div>
+      <div class="chart-box"><canvas id="c6" aria-label="Выпуск основных продуктов по месяцам" role="img"></canvas></div>
+    </section>
+  </main>
+
+  <footer class="events">
+    <span class="ev-label">События</span>
+    <div class="ev-track" id="evTrack"><div class="ev-inner" id="evInner"></div></div>
+  </footer>
+</div>
+
+<div class="narrow" id="narrow" role="dialog" aria-modal="true" aria-label="Предупреждение о размере экрана">
+  <div><p>Дашборд оптимизирован для экранов от 1280 px</p><button type="button" id="narrowClose" aria-label="Закрыть предупреждение">Понятно</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<script>
+/* ============================== ДАННЫЕ ============================== */
+const DATA = {
+  meta: {
+    company: "АО «Северный НПЗ»",
+    shortName: "АО «СНПЗ»",
+    year: 2026,
+    dataDate: "2026-10-01",
+    lastFactMonth: 9,              // 1..12, сентябрь
+    unit: "тыс. т",
+    capacityPerYear: 12500,        // проектная мощность, тыс. т/год
+    targets: { depth: 92.0, lightYield: 70.0, utilization: 96.0 }
+  },
+  months: ["Январь","Февраль","Март","Апрель","Май","Июнь",
+           "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+  monthsShort: ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"],
+  daysInMonth: [31,28,31,30,31,30,31,31,30,31,30,31],
+
+  refining: {
+    plan: [1020, 930, 1030, 990, 1010, 980, 1030, 1030, 990, 1030, 980, 980],
+    fact: [1035, 941, 1018, 862, 1024, 991, 1046, 1029, 1002, null, null, null]
+  },
+
+  // group: light — светлые, dark — тёмные, other — прочие товарные, service — собств. нужды и потери
+  products: [
+      { id: "gasoline", name: "Автомобильные бензины", group: "light",
+        plan: [242, 221, 244, 235, 240, 233, 244, 244, 235, 244, 233, 233],
+        fact: [244, 223, 242, 199, 244, 237, 251, 246, 241, null, null, null] },
+      { id: "diesel", name: "Дизельное топливо", group: "light",
+        plan: [340, 310, 343, 330, 336, 326, 343, 343, 330, 343, 326, 326],
+        fact: [342, 313, 340, 279, 343, 333, 353, 345, 338, null, null, null] },
+      { id: "jet", name: "Авиакеросин", group: "light",
+        plan: [81, 74, 82, 79, 81, 78, 82, 82, 79, 82, 78, 78],
+        fact: [82, 75, 81, 67, 82, 80, 85, 83, 81, null, null, null] },
+      { id: "lpg", name: "Сжиженные углеводородные газы", group: "light",
+        plan: [31, 28, 31, 30, 30, 29, 31, 31, 30, 31, 29, 29],
+        fact: [31, 28, 31, 25, 31, 30, 32, 31, 30, null, null, null] },
+      { id: "naphtha", name: "Нафта (прямогонный бензин)", group: "light",
+        plan: [20, 19, 21, 20, 20, 20, 21, 21, 20, 21, 20, 20],
+        fact: [20, 19, 20, 17, 21, 20, 21, 21, 20, null, null, null] },
+      { id: "fuel_oil", name: "Мазут топочный", group: "dark",
+        plan: [52, 47, 53, 50, 52, 50, 53, 53, 50, 53, 50, 50],
+        fact: [57, 50, 51, 58, 49, 46, 46, 48, 43, null, null, null] },
+      { id: "vgo", name: "Вакуумный газойль", group: "dark",
+        plan: [61, 56, 62, 60, 61, 59, 62, 62, 60, 62, 59, 59],
+        fact: [63, 57, 61, 53, 61, 59, 62, 62, 60, null, null, null] },
+      { id: "coke", name: "Кокс нефтяной", group: "dark",
+        plan: [56, 51, 57, 55, 56, 54, 57, 57, 55, 57, 54, 54],
+        fact: [57, 52, 56, 48, 56, 55, 57, 57, 55, null, null, null] },
+      { id: "bitumen", name: "Битумы", group: "dark",
+        plan: [43, 39, 43, 42, 43, 41, 43, 43, 42, 43, 41, 41],
+        fact: [44, 40, 43, 37, 43, 42, 44, 43, 42, null, null, null] },
+      { id: "marine", name: "Судовое топливо", group: "dark",
+        plan: [36, 33, 36, 35, 36, 34, 36, 36, 35, 36, 34, 34],
+        fact: [37, 33, 36, 31, 36, 35, 36, 36, 35, null, null, null] },
+      { id: "sulfur", name: "Сера техническая", group: "other",
+        plan: [12, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
+        fact: [13, 11, 12, 11, 12, 12, 12, 12, 12, null, null, null] },
+      { id: "other", name: "Прочие (масла, парафины)", group: "other",
+        plan: [17, 14, 16, 13, 14, 15, 16, 16, 13, 16, 15, 15],
+        fact: [15, 12, 16, 12, 16, 13, 17, 15, 16, null, null, null] },
+      { id: "own_use", name: "Топливо на собственные нужды", group: "service",
+        plan: [23, 21, 24, 23, 23, 23, 24, 24, 23, 24, 23, 23],
+        fact: [24, 22, 23, 20, 24, 23, 24, 24, 23, null, null, null] },
+      { id: "losses", name: "Безвозвратные потери", group: "service",
+        plan: [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+        fact: [6, 6, 6, 5, 6, 6, 6, 6, 6, null, null, null] }
+    ],
+
+  events: [
+    { month: 2,  level: "info",    text: "Переход на выпуск зимнего и арктического ДТ завершён" },
+    { month: 4,  level: "danger",  text: "Внеплановый простой АВТ-6 (4 сут.) — отказ сырьевого насоса; недобор переработки 128 тыс. т" },
+    { month: 5,  level: "success", text: "АВТ-6 выведена на проектный режим; компенсация недобора начата" },
+    { month: 7,  level: "success", text: "Рекордная месячная переработка 2026 г. — 1 046 тыс. т" },
+    { month: 9,  level: "success", text: "Глубина переработки 92,8% — максимум с начала года" },
+    { month: 10, level: "warning", text: "Запланирован капремонт установки риформинга (12 сут.)" }
+  ]
+};
+</script>
+
+<script>
+(function () {
+'use strict';
+
+/* ============================== УТИЛИТЫ ============================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const M = DATA.meta, LAST = M.lastFactMonth, YEAR = M.year;
+const FONT = 'Inter, "Segoe UI", Roboto, Arial, sans-serif';
+const C = {
+  primary:'#1D4ED8', primaryDark:'#0B2A6B', accent:'#0EA5E9', primaryLight:'#BFDBFE',
+  border:'#DCE7F7', text:'#0F2747', muted:'#5B7299',
+  success:'#16A34A', warning:'#D97706', danger:'#DC2626'
+};
+const MINUS = '−';
+const NF = [0, 1].map(d => new Intl.NumberFormat('ru-RU', { minimumFractionDigits: d, maximumFractionDigits: d }));
+
+function fmt(v, d = 0) {
+  if (v == null || !isFinite(v)) return '—';
+  return NF[d].format(Number(v.toFixed(d)) + 0).replace('-', MINUS);
+}
+function fmtSigned(v, d = 0) {
+  if (v == null || !isFinite(v)) return '—';
+  const r = Number(v.toFixed(d)) + 0;
+  return (r < 0 ? MINUS : '+') + NF[d].format(Math.abs(r));
+}
+function arrow(v, d = 0) {
+  const r = Number((v ?? 0).toFixed(d));
+  return r > 0 ? '▲' : r < 0 ? '▼' : '●';
+}
+const pct = (a, b) => (a == null || b == null || b === 0) ? null : a / b * 100;
+const fmtPct = v => v == null ? 'н/д' : fmt(v, 1) + '%';
+const sum = arr => arr.reduce((a, b) => a + (b ?? 0), 0);
+function sumRange(arr, from, to) {
+  let s = 0;
+  for (let i = from; i <= to; i++) { if (arr[i] == null) return null; s += arr[i]; }
+  return s;
+}
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[ch]));
+const rootScale = () => parseFloat(getComputedStyle(document.documentElement).fontSize) / 16;
+const kScale = () => state.tv ? 1.25 : 1;
+
+// Статусы
+function volStatus(p) { if (p == null) return ''; return p >= 100 ? 'ok' : p >= 98 ? 'warn' : 'bad'; }
+function ppStatus(d) { if (d == null) return ''; const r = Number(d.toFixed(1)); return r >= 0 ? 'ok' : r >= -0.5 ? 'warn' : 'bad'; }
+function utilStatus(u) { if (u == null) return ''; return u >= M.targets.utilization ? 'ok' : u >= 90 ? 'warn' : 'bad'; }
+function invStatus(p) { if (p == null) return ''; return p <= 100 ? 'ok' : p <= 102 ? 'warn' : 'bad'; }
+const statusColor = s => ({ ok: C.success, warn: C.warning, bad: C.danger }[s] || C.muted);
+
+/* ============================== РАСЧЁТЫ ============================== */
+const GROUPS = ['light', 'dark', 'other', 'service'];
+const GROUP_NAMES = {
+  light: 'Светлые нефтепродукты', dark: 'Тёмные нефтепродукты',
+  other: 'Прочая товарная продукция', service: 'Справочно: собственные нужды и потери'
+};
+const MAIN = ['gasoline', 'diesel', 'jet', 'fuel_oil'];
+const SEGMENTS = [
+  { name: 'Автобензины',      color: '#1D4ED8', ids: ['gasoline'] },
+  { name: 'Дизельное топливо', color: '#2563EB', ids: ['diesel'] },
+  { name: 'Авиакеросин',       color: '#0EA5E9', ids: ['jet'] },
+  { name: 'Мазут топочный',    color: '#1E3A8A', ids: ['fuel_oil'] },
+  { name: 'Прочие светлые',    color: '#38BDF8', ids: DATA.products.filter(p => p.group === 'light' && !MAIN.includes(p.id)).map(p => p.id) },
+  { name: 'Прочие тёмные',     color: '#93C5FD', ids: DATA.products.filter(p => p.group === 'dark' && !MAIN.includes(p.id)).map(p => p.id) },
+  { name: 'Прочие товарные',   color: '#7DD3FC', ids: DATA.products.filter(p => p.group === 'other').map(p => p.id) }
+];
+const SEG_OF = {};
+SEGMENTS.forEach((s, i) => s.ids.forEach(id => { SEG_OF[id] = i; }));
+
+function periodRange(mode, month) { return mode === 'ytd' ? [0, month - 1] : [month - 1, month - 1]; }
+
+function getPeriodData(mode, month) {
+  const [f, t] = periodRange(mode, month);
+  const days = sum(DATA.daysInMonth.slice(f, t + 1));
+  const V = { plan: sumRange(DATA.refining.plan, f, t), fact: sumRange(DATA.refining.fact, f, t) };
+  const products = DATA.products.map(p => ({
+    id: p.id, name: p.name, group: p.group,
+    plan: sumRange(p.plan, f, t), fact: sumRange(p.fact, f, t)
+  }));
+  const G = {};
+  GROUPS.forEach(g => { G[g] = { plan: 0, fact: 0 }; });
+  products.forEach(p => { G[p.group].plan += p.plan ?? 0; G[p.group].fact += p.fact ?? 0; });
+  const com = { plan: G.light.plan + G.dark.plan + G.other.plan, fact: G.light.fact + G.dark.fact + G.other.fact };
+  const fuel = products.find(p => p.id === 'fuel_oil') || { plan: 0, fact: 0 };
+  const depthOf = k => V[k] == null ? null : pct(V[k] - (fuel[k] ?? 0) - G.service[k], V[k]);
+  const segs = SEGMENTS.map(s => sum(products.filter(p => s.ids.includes(p.id)).map(p => p.fact)));
+  return {
+    mode, month, f, t, days, V, products, G, com, segs,
+    depth: { fact: depthOf('fact'), calcPlan: depthOf('plan'), plan: M.targets.depth },
+    light: { fact: pct(G.light.fact, V.fact), calcPlan: pct(G.light.plan, V.plan), plan: M.targets.lightYield },
+    util: V.fact == null ? null : V.fact / (M.capacityPerYear * days / 365) * 100
+  };
+}
+
+const MONTHLY = Array.from({ length: LAST }, (_, i) => getPeriodData('month', i + 1));
+const FORECAST = sumRange(DATA.refining.fact, 0, LAST - 1) + sumRange(DATA.refining.plan, LAST, 11);
+const YEAR_PLAN = sum(DATA.refining.plan);
+
+function validateData() {
+  const issues = [];
+  for (let i = 0; i < 12; i++) {
+    for (const k of ['plan', 'fact']) {
+      const v = DATA.refining[k][i];
+      if (v == null) continue;
+      const s = sum(DATA.products.map(p => p[k][i]));
+      if (Math.abs(s - v) > 0.5) issues.push(`${DATA.months[i]} (${k === 'plan' ? 'план' : 'факт'}): сумма продуктов ${s} ≠ переработка ${v}`);
+    }
+  }
+  if (issues.length) console.warn('validateData(): обнаружены расхождения в данных\n' + issues.join('\n'));
+  return issues.length === 0;
+}
+
+/* ============================== СОСТОЯНИЕ ============================== */
+const state = { mode: 'ytd', month: LAST, tv: false, sort: { key: 'dev', dir: 1 }, grouped: true, hoverSeg: null };
+let P = null;            // данные текущего периода
+const charts = {};
+const hasCharts = typeof window.Chart !== 'undefined';
+
+function periodLabel() {
+  const m = DATA.months[state.month - 1];
+  if (state.mode === 'month' || state.month === 1) return `${m} ${YEAR}`;
+  return `${DATA.months[0]} — ${m} ${YEAR}`;
+}
+
+function writeHash() {
+  const h = `#mode=${state.mode}&month=${state.month}` + (state.tv ? '&tv=1' : '');
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const r = {};
+  if (p.get('mode') === 'month' || p.get('mode') === 'ytd') r.mode = p.get('mode');
+  const m = parseInt(p.get('month'), 10);
+  if (m >= 1 && m <= LAST) r.month = m;
+  r.tv = p.get('tv') === '1';
+  return r;
+}
+
+function setState(patch) {
+  Object.assign(state, patch);
+  state.month = Math.min(LAST, Math.max(1, state.month | 0));
+  writeHash();
+  update();
+}
+
+/* ============================== ОТРИСОВКА: ШАПКА ============================== */
+function renderHeader() {
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  $('#monthSel').value = String(state.month);
+  $('#periodLabel').textContent = periodLabel();
+  $('#b3hint').textContent = periodLabel();
+}
+
+function tickClock() {
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  $('#clock').textContent = `${z(d.getDate())}.${z(d.getMonth() + 1)}.${d.getFullYear()} · ${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+
+/* ============================== ОТРИСОВКА: KPI ============================== */
+function countUp(el, to, dec) {
+  if (to == null || !isFinite(to)) { el.textContent = '—'; el.dataset.v = ''; return; }
+  const from = el.dataset.v ? parseFloat(el.dataset.v) : 0;
+  el.dataset.v = String(to);
+  cancelAnimationFrame(el._raf);
+  clearTimeout(el._fin);
+  if (from === to || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = fmt(to, dec); return; }
+  // страховка: если вкладка в фоне и rAF притормаживается, итоговое значение всё равно выставляется
+  el._fin = setTimeout(() => { cancelAnimationFrame(el._raf); el.textContent = fmt(to, dec); }, 450);
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / 400), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmt(from + (to - from) * e, dec);
+    if (k < 1) el._raf = requestAnimationFrame(step);
+  };
+  el._raf = requestAnimationFrame(step);
+}
+
+function barHtml(fillPct, markerPct) {
+  const w = Math.max(0, Math.min(100, fillPct ?? 0));
+  const mk = markerPct == null ? '' : `<b style="left:${Math.max(0, Math.min(100, markerPct))}%"></b>`;
+  return `<div class="bar" role="presentation"><i style="width:${w}%"></i>${mk}</div>`;
+}
+// прогресс выполнения плана: при > 100% — заполнение до конца + маркер плана
+function planBar(p) {
+  if (p == null) return barHtml(0);
+  return p > 100 ? barHtml(100, 100 / p * 100) : barHtml(p);
+}
+
+function sparkSvg(values, target, el) {
+  const W = Math.max(60, el.clientWidth || 200), H = Math.round(32 * rootScale());
+  const pad = 4;
+  const lo = Math.min(target, ...values) - 0.3, hi = Math.max(target, ...values) + 0.3;
+  const x = i => pad + i * (W - 2 * pad) / Math.max(1, values.length - 1);
+  const y = v => pad + (hi - v) / (hi - lo) * (H - 2 * pad);
+  const pts = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const [f, t] = periodRange(state.mode, state.month);
+  let dots = '';
+  values.forEach((v, i) => {
+    const below = v < target;
+    const sel = i >= f && i <= t;
+    if (below) dots += `<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="${C.danger}"/>`;
+    if (sel && (state.mode === 'month' || i === t))
+      dots += `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#fff" stroke="${below ? C.danger : C.primary}" stroke-width="2"/>`;
+  });
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+    <line x1="${pad}" x2="${W - pad}" y1="${y(target)}" y2="${y(target)}" stroke="${C.muted}" stroke-dasharray="3 3" stroke-width="1"/>
+    ${state.mode === 'ytd' ? `<rect x="${x(f) - 3}" y="0" width="${x(t) - x(f) + 6}" height="${H}" fill="${C.primary}" fill-opacity=".05" rx="3"/>` : ''}
+    <polyline points="${pts}" fill="none" stroke="${C.primary}" stroke-width="${state.tv ? 2.5 : 1.75}" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}</svg>`;
+}
+
+function setKpi(id, o) {
+  const card = $('#' + id);
+  card.dataset.status = o.status || '';
+  countUp(card.querySelector('.num'), o.value, o.dec);
+  card.querySelector('.plan-txt').innerHTML = o.plan;
+  const b = card.querySelector('.badge');
+  b.className = 'badge ' + (o.status || '');
+  b.textContent = o.badge;
+  b.setAttribute('aria-label', 'Отклонение ' + o.badge);
+  const vis = card.querySelector('.kpi-visual');
+  if (o.spark) { vis.innerHTML = ''; vis.innerHTML = sparkSvg(o.spark.values, o.spark.target, vis); }
+  else vis.innerHTML = o.bar + `<span class="pcttxt">${o.barText}</span>`;
+  card.querySelector('.kpi-extra').innerHTML = o.extra || '&nbsp;';
+}
+
+function minMaxText(values) {
+  let mi = 0, ma = 0;
+  values.forEach((v, i) => { if (v < values[mi]) mi = i; if (v > values[ma]) ma = i; });
+  return `${DATA.monthsShort[0]}–${DATA.monthsShort[LAST - 1]}: мин <b>${fmt(values[mi], 1)}%</b> (${DATA.monthsShort[mi]}) · макс <b>${fmt(values[ma], 1)}%</b> (${DATA.monthsShort[ma]})`;
+}
+
+function renderKpis() {
+  // K1 — переработка
+  const vp = pct(P.V.fact, P.V.plan);
+  setKpi('k1', {
+    value: P.V.fact, dec: 0, status: volStatus(vp),
+    plan: `План: <b>${fmt(P.V.plan)}</b> · откл. <span class="st-${volStatus(vp)}">${fmtSigned(P.V.fact - P.V.plan)}</span>`,
+    badge: vp == null ? 'н/д' : `${arrow(vp - 100, 1)} ${fmtSigned(vp - 100, 1)}%`,
+    bar: planBar(vp), barText: fmtPct(vp),
+    extra: state.mode === 'ytd'
+      ? `Прогноз на год: <b>${fmt(FORECAST)} тыс. т</b> (${fmtPct(pct(FORECAST, YEAR_PLAN))})`
+      : `Выполнение плана за ${DATA.months[state.month - 1].toLowerCase()}: <b>${fmtPct(vp)}</b>`
+  });
+  // K2 — глубина
+  const dd = P.depth.fact - P.depth.plan;
+  const depthVals = MONTHLY.map(m => m.depth.fact);
+  setKpi('k2', {
+    value: P.depth.fact, dec: 1, status: ppStatus(dd),
+    plan: `План: <b>${fmt(P.depth.plan, 1)}%</b>`,
+    badge: `${arrow(dd, 1)} ${fmtSigned(dd, 1)} п.п.`,
+    spark: { values: depthVals, target: P.depth.plan },
+    extra: minMaxText(depthVals)
+  });
+  // K3 — выход светлых
+  const ld = P.light.fact - P.light.plan;
+  const lightVals = MONTHLY.map(m => m.light.fact);
+  setKpi('k3', {
+    value: P.light.fact, dec: 1, status: ppStatus(ld),
+    plan: `План: <b>${fmt(P.light.plan, 1)}%</b>`,
+    badge: `${arrow(ld, 1)} ${fmtSigned(ld, 1)} п.п.`,
+    spark: { values: lightVals, target: P.light.plan },
+    extra: minMaxText(lightVals)
+  });
+  // K4 — товарная продукция
+  const cp = pct(P.com.fact, P.com.plan);
+  setKpi('k4', {
+    value: P.com.fact, dec: 0, status: volStatus(cp),
+    plan: `План: <b>${fmt(P.com.plan)}</b> · откл. <span class="st-${volStatus(cp)}">${fmtSigned(P.com.fact - P.com.plan)}</span>`,
+    badge: cp == null ? 'н/д' : `${arrow(cp - 100, 1)} ${fmtSigned(cp - 100, 1)}%`,
+    bar: planBar(cp), barText: fmtPct(cp),
+    extra: `Светлые <b>${fmt(P.G.light.fact)}</b> · тёмные <b>${fmt(P.G.dark.fact)}</b> · прочие <b>${fmt(P.G.other.fact)}</b>`
+  });
+  // K5 — загрузка мощностей
+  const ut = M.targets.utilization, udv = P.util - ut;
+  setKpi('k5', {
+    value: P.util, dec: 1, status: utilStatus(P.util),
+    plan: `Цель: <b>${fmt(ut, 1)}%</b>`,
+    badge: `${arrow(udv, 1)} ${fmtSigned(udv, 1)} п.п.`,
+    bar: barHtml(P.util, ut), barText: fmtPct(P.util),
+    extra: `Мощность <b>${fmt(M.capacityPerYear)} тыс. т/год</b> · ${P.days} сут.`
+  });
+}
+
+/* ============================== ОТРИСОВКА: ТАБЛИЦА ============================== */
+function rowData(p) {
+  const pc = pct(p.fact, p.plan);
+  return { ...p, dev: (p.fact ?? 0) - (p.plan ?? 0), pct: pc, share: pct(p.fact, P.V.fact),
+    status: p.group === 'service' ? invStatus(pc) : volStatus(pc) };
+}
+function sortRows(rows) {
+  const { key, dir } = state.sort;
+  return rows.slice().sort((a, b) => {
+    if (key === 'name') return a.name.localeCompare(b.name, 'ru') * dir;
+    return ((a[key] ?? -Infinity) - (b[key] ?? -Infinity)) * dir;
+  });
+}
+function miniBar(pc) {
+  const scale = 110; // ширина трека = 110% плана, маркер — на 100%
+  const w = pc == null ? 0 : Math.min(pc, scale) / scale * 100;
+  return `<div class="pc"><span>${fmtPct(pc)}</span><div class="mbar"><i style="width:${w}%"></i><b style="left:${100 / scale * 100}%"></b></div></div>`;
+}
+function tr(r, cls = '', label = null) {
+  const seg = SEG_OF[r.id];
+  const dot = r.group ? `<span class="gdot g-${r.group}"></span>` : '';
+  const devTxt = `${arrow(r.dev)} ${fmtSigned(r.dev)}`;
+  return `<tr class="${cls}"${seg != null ? ` data-seg="${seg}"` : ''}>
+    <td class="l" title="${esc(label ?? r.name)}">${dot}${esc(label ?? r.name)}</td>
+    <td>${fmt(r.plan)}</td>
+    <td><span class="fact">${fmt(r.fact)}</span></td>
+    <td class="st-${r.status}">${devTxt}</td>
+    <td>${miniBar(r.pct)}</td>
+    <td>${fmtPct(r.share)}</td></tr>`;
+}
+function groupRow(g, extraCls = '') {
+  const G = P.G[g];
+  return tr(rowData({ name: GROUP_NAMES[g], group: g, plan: G.plan, fact: G.fact }), 'grp ' + extraCls, GROUP_NAMES[g]);
+}
+
+function renderTable() {
+  const rows = P.products.map(rowData);
+  let html = '';
+  if (state.tv) {
+    const top = new Set(rows.filter(r => r.group !== 'service').sort((a, b) => b.fact - a.fact).slice(0, 5).map(r => r.id));
+    ['light', 'dark', 'other'].forEach(g => {
+      html += groupRow(g);
+      html += sortRows(rows.filter(r => r.group === g && top.has(r.id))).map(r => tr(r)).join('');
+    });
+  } else if (state.grouped) {
+    GROUPS.forEach(g => {
+      const svc = g === 'service';
+      html += groupRow(g, svc ? 'svc' : '');
+      html += sortRows(rows.filter(r => r.group === g)).map(r => tr(r, svc ? 'svc' : '')).join('');
+    });
+  } else {
+    html += sortRows(rows.filter(r => r.group !== 'service')).map(r => tr(r)).join('');
+    html += groupRow('service', 'svc');
+    html += sortRows(rows.filter(r => r.group === 'service')).map(r => tr(r, 'svc')).join('');
+  }
+  $('#tbody').innerHTML = html;
+  $('#tfoot').innerHTML = tr(rowData({ name: 'Итого товарная продукция', plan: P.com.plan, fact: P.com.fact }), 'total');
+  $$('#prodTable th button').forEach(b => {
+    const on = b.dataset.key === state.sort.key;
+    b.querySelector('.si').textContent = on ? (state.sort.dir > 0 ? '↑' : '↓') : '';
+    b.parentElement.setAttribute('aria-sort', on ? (state.sort.dir > 0 ? 'ascending' : 'descending') : 'none');
+  });
+  highlightSeg(state.hoverSeg);
+}
+
+/* ============================== ОТРИСОВКА: СОБЫТИЯ ============================== */
+function renderEvents() {
+  const list = DATA.events.filter(e => state.mode === 'ytd' ? e.month <= state.month : e.month === state.month);
+  const planned = DATA.events.filter(e => e.month > LAST);
+  const item = (e, plan) => `<span class="ev"><span class="d d-${e.level}" aria-hidden="true"></span>` +
+    `<span class="m">${DATA.monthsShort[e.month - 1]}</span>${plan ? '<span class="p">план</span>' : ''}<span>${esc(e.text)}</span></span>`;
+  let html = list.map(e => item(e, false)).join('');
+  if (!list.length) html = `<span class="ev-empty">Нет событий за ${periodLabel().toLowerCase()}</span>`;
+  html += planned.map(e => item(e, true)).join('');
+  const inner = $('#evInner');
+  inner.classList.remove('marquee');
+  inner.innerHTML = html;
+  if (inner.scrollWidth > $('#evTrack').clientWidth) {
+    inner.innerHTML = html + `<span style="width:2rem"></span>` + html;
+    inner.style.setProperty('--dur', Math.max(20, inner.scrollWidth / 2 / 60) + 's');
+    inner.classList.add('marquee');
+  }
+}
+
+/* ============================== ГРАФИКИ ============================== */
+function hatchPattern() {
+  const c = document.createElement('canvas'); c.width = c.height = 8;
+  const x = c.getContext('2d');
+  x.fillStyle = 'rgba(191,219,254,.5)'; x.fillRect(0, 0, 8, 8);
+  x.strokeStyle = '#93C5FD'; x.lineWidth = 1.5;
+  x.beginPath(); x.moveTo(-2, 10); x.lineTo(10, -2); x.moveTo(-2, 2); x.lineTo(2, -2); x.moveTo(6, 10); x.lineTo(10, 6); x.stroke();
+  return x.createPattern(c, 'repeat');
+}
+const tooltipBase = () => ({
+  backgroundColor: '#FFFFFF', borderColor: C.border, borderWidth: 1, cornerRadius: 8, padding: 10,
+  titleColor: C.primaryDark, bodyColor: C.text, footerColor: C.text, displayColors: true, boxPadding: 4,
+  usePointStyle: true, titleFont: { weight: '600' }, footerFont: { weight: '600' }, caretPadding: 6
+});
+const legendBase = () => ({ position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 12 } });
+
+// Подписи значений над столбцами факта (TV-режим)
+const valueLabels = {
+  id: 'valueLabels',
+  afterDatasetsDraw(chart) {
+    if (!state.tv || chart.canvas.id !== 'c1') return;
+    const meta = chart.getDatasetMeta(1);
+    if (meta.hidden) return;
+    const c = chart.ctx; c.save();
+    c.font = `600 ${Chart.defaults.font.size * 0.9}px ${FONT}`;
+    c.fillStyle = C.primaryDark; c.textAlign = 'center'; c.textBaseline = 'bottom';
+    meta.data.forEach((bar, i) => {
+      const v = chart.data.datasets[1].data[i];
+      if (v != null) c.fillText(fmt(v), bar.x, bar.y - 3);
+    });
+    c.restore();
+  }
+};
+// Текст в центре доната
+const donutCenter = {
+  id: 'donutCenter',
+  afterDraw(chart) {
+    if (chart.canvas.id !== 'c4') return;
+    const arc = chart.getDatasetMeta(0).data[0];
+    if (!arc) return;
+    const { x, y, innerRadius: r } = arc.getProps(['x', 'y', 'innerRadius'], true);
+    const s = rootScale() * kScale(), c = chart.ctx;
+    c.save(); c.textAlign = 'center';
+    c.fillStyle = C.muted; c.font = `500 ${Math.min(11.5 * s, r * 0.2)}px ${FONT}`; c.textBaseline = 'bottom';
+    c.fillText('Товарная', x, y - r * 0.22); c.fillText('продукция', x, y - r * 0.22 + Math.min(11.5 * s, r * 0.2) * 1.1);
+    c.fillStyle = C.primaryDark; c.font = `700 ${Math.min(22 * s, r * 0.36)}px ${FONT}`; c.textBaseline = 'middle';
+    c.fillText(fmt(P.com.fact), x, y + r * 0.2);
+    c.fillStyle = C.muted; c.font = `500 ${Math.min(11 * s, r * 0.19)}px ${FONT}`; c.textBaseline = 'top';
+    c.fillText('тыс. т', x, y + r * 0.42);
+    c.restore();
+  }
+};
+// Спидометр: риска плана, значение, отклонение, мин/макс шкалы
+const gaugePlugin = {
+  id: 'gauge',
+  afterDraw(chart) {
+    const g = chart.options.plugins.gaugeInfo;
+    if (!g || g.value == null) return;
+    const arc = chart.getDatasetMeta(0).data[0];
+    if (!arc) return;
+    const { x, y, outerRadius: R, innerRadius: r } = arc.getProps(['x', 'y', 'outerRadius', 'innerRadius'], true);
+    const c = chart.ctx, s = rootScale() * kScale();
+    const ang = v => Math.PI + Math.max(0, Math.min(1, (v - g.min) / (g.max - g.min))) * Math.PI;
+    c.save();
+    // риска плана
+    const a = ang(g.plan), cos = Math.cos(a), sin = Math.sin(a);
+    c.strokeStyle = C.primaryDark; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(x + cos * (r - 5), y + sin * (r - 5)); c.lineTo(x + cos * (R + 5), y + sin * (R + 5)); c.stroke();
+    c.fillStyle = C.primaryDark; c.font = `600 ${11 * s}px ${FONT}`;
+    c.textAlign = cos > 0.3 ? 'left' : cos < -0.3 ? 'right' : 'center';
+    c.textBaseline = sin > -0.5 ? 'middle' : 'bottom';
+    c.fillText(`план ${fmt(g.plan, 1)}`, x + cos * (R + 9), y + sin * (R + 9));
+    // значение
+    const vs = Math.min(26 * s, r * 0.5);
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    c.fillStyle = C.primaryDark; c.font = `700 ${vs}px ${FONT}`;
+    c.fillText(fmt(g.value, 1) + '%', x, y - Math.min(16 * s, r * 0.3));
+    const d = g.value - g.plan, st = ppStatus(d);
+    c.fillStyle = statusColor(st); c.font = `600 ${Math.min(12.5 * s, r * 0.24)}px ${FONT}`;
+    c.fillText(`${arrow(d, 1)} ${fmtSigned(d, 1)} п.п.`, x, y - 1);
+    // края шкалы
+    c.fillStyle = C.muted; c.font = `400 ${11 * s}px ${FONT}`; c.textBaseline = 'top';
+    c.fillText(fmt(g.min, 0) + '%', x - (R + r) / 2, y + 4);
+    c.fillText(fmt(g.max, 0) + '%', x + (R + r) / 2, y + 4);
+    c.restore();
+  }
+};
+
+function applyChartDefaults() {
+  Chart.defaults.font.family = FONT;
+  Chart.defaults.font.size = 12 * rootScale() * kScale();
+  Chart.defaults.color = C.muted;
+  Chart.defaults.borderColor = C.border;
+}
+
+function inPeriod(i) { const [f, t] = periodRange(state.mode, state.month); return i >= f && i <= t; }
+function b1FactColors() { return DATA.refining.fact.map((_, i) => inPeriod(i) ? C.primary : 'rgba(29,78,216,.4)'); }
+
+function cumPctSeries() {
+  let cf = 0, cp = 0;
+  return DATA.refining.fact.map((v, i) => {
+    if (v == null) return null;
+    cf += v; cp += DATA.refining.plan[i];
+    return cp ? cf / cp * 100 : null;
+  });
+}
+
+function initCharts() {
+  applyChartDefaults();
+  const lw = () => state.tv ? 3 : 2;
+  const months12 = DATA.monthsShort.map((m, i) => i < LAST ? m : [m, 'прогноз']);
+  const factMonths = DATA.monthsShort.slice(0, LAST);
+  const hatch = hatchPattern();
+  const commonScales = {
+    x: { grid: { display: false }, border: { color: C.border } },
+    y: { grid: { color: C.border }, border: { display: false } }
+  };
+
+  /* --- Б1 --- */
+  charts.b1 = new Chart($('#c1'), {
+    data: {
+      labels: months12,
+      datasets: [
+        { type: 'bar', label: 'План', data: DATA.refining.plan.slice(),
+          backgroundColor: DATA.refining.plan.map((_, i) => i < LAST ? C.primaryLight : hatch),
+          borderRadius: 4, categoryPercentage: 0.6, barPercentage: 0.9, yAxisID: 'y', order: 3 },
+        { type: 'bar', label: 'Факт', data: DATA.refining.fact.slice(), backgroundColor: b1FactColors(),
+          borderRadius: 4, categoryPercentage: 0.6, barPercentage: 0.9, yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'Накопленное выполнение, %', data: cumPctSeries(), yAxisID: 'y1', order: 0,
+          borderColor: C.accent, backgroundColor: C.accent, pointBackgroundColor: '#fff', pointBorderWidth: 2,
+          pointRadius: 3.5, pointHoverRadius: 5, borderWidth: lw(), tension: 0.25, spanGaps: false },
+        { type: 'line', label: '100%', isRef: true, data: Array(12).fill(100), yAxisID: 'y1', order: 1,
+          borderColor: 'rgba(11,42,107,.45)', borderDash: [6, 4], borderWidth: 1.25, pointRadius: 0, pointHoverRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
+      interaction: { mode: 'index', intersect: false },
+      layout: { padding: { top: 4 } },
+      scales: {
+        x: commonScales.x,
+        y: { ...commonScales.y, beginAtZero: true, title: { display: true, text: 'тыс. т' },
+             ticks: { callback: v => fmt(v) } },
+        y1: { position: 'right', suggestedMin: 95, suggestedMax: 102, grid: { drawOnChartArea: false }, border: { display: false },
+              ticks: { color: C.accent, callback: v => fmt(v) + '%', stepSize: 1 } }
+      },
+      plugins: {
+        legend: { ...legendBase(), labels: { ...legendBase().labels, filter: it => it.text !== '100%',
+          generateLabels: ch => Chart.defaults.plugins.legend.labels.generateLabels(ch).map(l => {
+            const c = [C.primaryLight, C.primary, C.accent, C.primaryDark][l.datasetIndex];
+            return { ...l, fillStyle: l.datasetIndex === 2 ? '#fff' : c, strokeStyle: c };
+          }) } },
+        tooltip: { ...tooltipBase(),
+          filter: it => !it.dataset.isRef && it.raw != null,
+          callbacks: {
+            title: items => { const i = items[0].dataIndex; return `${DATA.months[i]} ${YEAR}` + (i >= LAST ? ' · прогноз' : ''); },
+            label: it => it.dataset.yAxisID === 'y1'
+              ? `Накопл. выполнение ${fmt(it.raw, 1)}%`
+              : `${it.dataset.label} ${fmt(it.raw)}`,
+            footer: items => {
+              const i = items[0].dataIndex, f = DATA.refining.fact[i], p = DATA.refining.plan[i];
+              return f == null ? 'Факт отсутствует' : `Откл. ${fmtSigned(f - p)} (${fmtPct(pct(f, p))})`;
+            }
+          } }
+      },
+      onClick: (evt, els, chart) => {
+        if (state.tv) return;
+        const pts = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
+        const i = pts.length ? pts[0].index : null;
+        if (i != null && i < LAST) setState({ mode: 'month', month: i + 1 });
+      },
+      onHover: (evt, els, chart) => {
+        const pts = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
+        chart.canvas.style.cursor = (!state.tv && pts.length && pts[0].index < LAST) ? 'pointer' : 'default';
+      }
+    },
+    plugins: [valueLabels]
+  });
+
+  /* --- Б2 --- */
+  const depthVals = MONTHLY.map(m => m.depth.fact), lightVals = MONTHLY.map(m => m.light.fact);
+  const below = (vals, target, color) => ctx => (vals[ctx.dataIndex] != null && vals[ctx.dataIndex] < target) ? C.danger : color;
+  const belowR = (vals, target) => ctx => (vals[ctx.dataIndex] != null && vals[ctx.dataIndex] < target) ? 5 : 3;
+  charts.b2 = new Chart($('#c2'), {
+    type: 'line',
+    data: {
+      labels: factMonths,
+      datasets: [
+        { label: 'Глубина', data: depthVals, yAxisID: 'y', borderColor: C.primary, backgroundColor: C.primary,
+          pointBackgroundColor: below(depthVals, M.targets.depth, C.primary), pointBorderColor: below(depthVals, M.targets.depth, C.primary),
+          pointRadius: belowR(depthVals, M.targets.depth), borderWidth: lw(), tension: 0.3, spanGaps: false },
+        { label: 'План глубины', data: Array(LAST).fill(M.targets.depth), yAxisID: 'y', borderColor: C.primary,
+          borderDash: [5, 4], borderWidth: 1.25, pointRadius: 0, pointHoverRadius: 0, isPlan: true },
+        { label: 'Выход светлых', data: lightVals, yAxisID: 'y1', borderColor: C.accent, backgroundColor: C.accent,
+          pointBackgroundColor: below(lightVals, M.targets.lightYield, C.accent), pointBorderColor: below(lightVals, M.targets.lightYield, C.accent),
+          pointRadius: belowR(lightVals, M.targets.lightYield), borderWidth: lw(), tension: 0.3, spanGaps: false },
+        { label: 'План светлых', data: Array(LAST).fill(M.targets.lightYield), yAxisID: 'y1', borderColor: C.accent,
+          borderDash: [5, 4], borderWidth: 1.25, pointRadius: 0, pointHoverRadius: 0, isPlan: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: commonScales.x,
+        y: { ...commonScales.y, suggestedMin: 88, suggestedMax: 94, ticks: { color: C.primary, callback: v => fmt(v) + '%', stepSize: 1 } },
+        y1: { position: 'right', suggestedMin: 66, suggestedMax: 72, grid: { drawOnChartArea: false }, border: { display: false },
+              ticks: { color: C.accent, callback: v => fmt(v) + '%', stepSize: 1 } }
+      },
+      plugins: {
+        legend: { ...legendBase(), labels: { ...legendBase().labels, filter: it => !/^План/.test(it.text),
+          generateLabels: ch => Chart.defaults.plugins.legend.labels.generateLabels(ch).map(l => {
+            const c = ch.data.datasets[l.datasetIndex].borderColor;
+            return { ...l, fillStyle: c, strokeStyle: c };
+          }) } },
+        tooltip: { ...tooltipBase(), filter: it => !it.dataset.isPlan,
+          callbacks: {
+            title: items => `${DATA.months[items[0].dataIndex]} ${YEAR}`,
+            label: it => {
+              const plan = it.datasetIndex === 0 ? M.targets.depth : M.targets.lightYield;
+              return `${it.dataset.label} ${fmt(it.raw, 1)}% (план ${fmt(plan, 1)}%, ${fmtSigned(it.raw - plan, 1)} п.п.)`;
+            }
+          } }
+      }
+    }
+  });
+
+  /* --- Б3 --- */
+  const gauge = (id, min, max) => new Chart($(id), {
+    type: 'doughnut',
+    data: { labels: ['Факт', ''], datasets: [{ data: [0, 1], borderWidth: 0,
+      backgroundColor: ctx => {
+        if (ctx.dataIndex === 1) return '#E8F0FC';
+        const a = ctx.chart.chartArea;
+        if (!a) return C.primary;
+        const g = ctx.chart.ctx.createLinearGradient(a.left, 0, a.right, 0);
+        g.addColorStop(0, '#93C5FD'); g.addColorStop(1, '#1D4ED8');
+        return g;
+      } }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, circumference: 180, rotation: 270, cutout: '72%',
+      animation: { duration: 600 },
+      layout: { padding: { top: 22 * rootScale(), bottom: 18 * rootScale(), left: 44 * rootScale(), right: 44 * rootScale() } },
+      events: [],
+      plugins: { legend: { display: false }, tooltip: { enabled: false }, gaugeInfo: { min, max, plan: 0, value: null } }
+    },
+    plugins: [gaugePlugin]
+  });
+  charts.g1 = gauge('#g1', 85, 95);
+  charts.g2 = gauge('#g2', 60, 75);
+
+  /* --- Б4 --- */
+  charts.b4 = new Chart($('#c4'), {
+    type: 'doughnut',
+    data: { labels: SEGMENTS.map(s => s.name), datasets: [{ data: P.segs.slice(), backgroundColor: SEGMENTS.map(s => s.color),
+      borderColor: '#fff', borderWidth: 2, hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '64%', animation: { duration: 600 },
+      layout: { padding: 6 },
+      plugins: { legend: { display: false },
+        tooltip: { ...tooltipBase(), callbacks: {
+          label: it => `${it.label}: ${fmt(it.raw)} тыс. т (${fmtPct(pct(it.raw, P.com.fact))})` } } },
+      onHover: (evt, els) => {
+        const i = els.length ? els[0].index : null;
+        if (i !== state.hoverSeg) highlightSeg(i);
+      }
+    },
+    plugins: [donutCenter]
+  });
+  $('#c4').addEventListener('mouseleave', () => highlightSeg(null));
+
+  /* --- Б6 --- */
+  const series = [
+    ...MAIN.map(id => {
+      const p = DATA.products.find(x => x.id === id);
+      return { label: SEGMENTS[SEG_OF[id]].name, color: SEGMENTS[SEG_OF[id]].color, data: p.fact.slice(0, LAST) };
+    }),
+    { label: 'Прочее', color: '#7DD3FC', data: Array.from({ length: LAST }, (_, i) =>
+        sum(DATA.products.filter(p => p.group !== 'service' && !MAIN.includes(p.id)).map(p => p.fact[i]))) }
+  ];
+  charts.b6 = new Chart($('#c6'), {
+    type: 'bar',
+    data: { labels: factMonths, datasets: series.map(s => ({ label: s.label, data: s.data, backgroundColor: s.color,
+      borderRadius: 4, borderSkipped: false, borderColor: '#fff', borderWidth: { top: 1 }, categoryPercentage: 0.6, barPercentage: 0.95 })) },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { ...commonScales.x, stacked: true },
+        y: { ...commonScales.y, stacked: true, ticks: { callback: v => fmt(v) } }
+      },
+      plugins: {
+        legend: { ...legendBase(), labels: { ...legendBase().labels, padding: 8 } },
+        tooltip: { ...tooltipBase(), itemSort: (a, b) => b.datasetIndex - a.datasetIndex, callbacks: {
+          title: items => `${DATA.months[items[0].dataIndex]} ${YEAR}`,
+          label: it => `${it.dataset.label}: ${fmt(it.raw)}`,
+          footer: items => `Итого: ${fmt(sum(items.map(i => i.raw)))} тыс. т`
+        } }
+      }
+    }
+  });
+
+  Object.values(charts).forEach(ch => { ch.options.animation.duration = 300; });
+}
+
+function updateCharts() {
+  if (!hasCharts) return;
+  const b1 = charts.b1;
+  b1.data.datasets[1].backgroundColor = b1FactColors();
+  b1.update();
+
+  const setG = (ch, value, plan) => {
+    const g = ch.options.plugins.gaugeInfo;
+    g.value = value; g.plan = plan;
+    const v = Math.max(g.min, Math.min(g.max, value ?? g.min));
+    ch.data.datasets[0].data = [v - g.min, g.max - v];
+    ch.update();
+  };
+  setG(charts.g1, P.depth.fact, P.depth.plan);
+  setG(charts.g2, P.light.fact, P.light.plan);
+
+  charts.b4.data.datasets[0].data = P.segs.slice();
+  charts.b4.update();
+}
+
+function applyTvToCharts() {
+  if (!hasCharts) return;
+  applyChartDefaults();
+  const lw = state.tv ? 3 : 2;
+  charts.b1.data.datasets[2].borderWidth = lw;
+  charts.b2.data.datasets[0].borderWidth = lw;
+  charts.b2.data.datasets[2].borderWidth = lw;
+  charts.b1.options.layout.padding.top = state.tv ? 18 * rootScale() : 4;
+  const pad = 18 * rootScale() * kScale(), side = 44 * rootScale() * kScale();
+  [charts.g1, charts.g2].forEach(g => { g.options.layout.padding = { top: pad * 1.22, bottom: pad, left: side, right: side }; });
+  Object.values(charts).forEach(ch => ch.update('none'));
+}
+
+/* --- Легенда Б4 --- */
+function renderLegend() {
+  $('#legend4').innerHTML = SEGMENTS.map((s, i) =>
+    `<li data-seg="${i}"><span class="dot" style="background:${s.color}"></span><span class="nm" title="${esc(s.name)}">${esc(s.name)}</span>` +
+    `<span class="v">${fmt(P.segs[i])}</span><span class="s">${fmtPct(pct(P.segs[i], P.com.fact))}</span></li>`).join('');
+}
+function highlightSeg(i) {
+  state.hoverSeg = i;
+  $$('#prodTable tbody tr[data-seg], #legend4 li').forEach(el => el.classList.toggle('hl', i != null && +el.dataset.seg === i));
+}
+
+/* ============================== ОБНОВЛЕНИЕ ============================== */
+function update() {
+  P = getPeriodData(state.mode, state.month);
+  renderHeader();
+  renderKpis();
+  renderTable();
+  renderLegend();
+  renderEvents();
+  updateCharts();
+}
+
+/* ============================== TV-РЕЖИМ ============================== */
+let rotTimer = null, rotIdx = 0, cursorTimer = null, tvFullscreen = false;
+const ROT_MS = 20000;
+function rotationSteps() {
+  const s = [{ mode: 'ytd', month: LAST }, { mode: 'month', month: LAST }];
+  if (LAST > 1) s.push({ mode: 'month', month: LAST - 1 });
+  return s;
+}
+function restartProgress() {
+  const el = $('#tvProg');
+  el.style.transition = 'none'; el.style.width = '0';
+  void el.offsetWidth;
+  if (!state.tv) return;
+  el.style.transition = `width ${ROT_MS}ms linear`; el.style.width = '100%';
+}
+function rotate() {
+  const steps = rotationSteps();
+  rotIdx = (rotIdx + 1) % steps.length;
+  setState(steps[rotIdx]);
+  restartProgress();
+}
+function onTvMouseMove() {
+  document.documentElement.classList.remove('cursor-hidden');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(() => { if (state.tv) document.documentElement.classList.add('cursor-hidden'); }, 3000);
+}
+function enterTv(byUser = true) {
+  if (state.tv) return;
+  state.tv = true;
+  document.documentElement.classList.add('tv');
+  $('#tvBtn').setAttribute('aria-label', 'Выключить TV-режим (клавиша T или Esc)');
+  const el = document.documentElement;
+  // Fullscreen API разрешён браузером только по действию пользователя
+  if (byUser && el.requestFullscreen && !document.fullscreenElement) {
+    el.requestFullscreen().then(() => { tvFullscreen = true; }).catch(() => { tvFullscreen = false; });
+  }
+  applyTvToCharts();
+  rotIdx = 0;
+  clearInterval(rotTimer);
+  rotTimer = setInterval(rotate, ROT_MS);
+  document.addEventListener('mousemove', onTvMouseMove);
+  onTvMouseMove();
+  setState(rotationSteps()[0]);
+  restartProgress();
+}
+function exitTv() {
+  if (!state.tv) return;
+  state.tv = false;
+  clearInterval(rotTimer); rotTimer = null;
+  clearTimeout(cursorTimer);
+  document.removeEventListener('mousemove', onTvMouseMove);
+  document.documentElement.classList.remove('tv', 'cursor-hidden');
+  $('#tvBtn').setAttribute('aria-label', 'Включить TV-режим (клавиша T)');
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  tvFullscreen = false;
+  restartProgress();
+  applyTvToCharts();
+  setState({});
+}
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && tvFullscreen && state.tv) exitTv();
+});
+
+/* ============================== СОБЫТИЯ UI ============================== */
+function bindUi() {
+  const sel = $('#monthSel');
+  sel.innerHTML = DATA.months.slice(0, LAST).map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+  sel.addEventListener('change', () => setState({ month: +sel.value }));
+  $$('.seg button').forEach(b => b.addEventListener('click', () => setState({ mode: b.dataset.mode })));
+  $('#tvBtn').addEventListener('click', () => state.tv ? exitTv() : enterTv());
+  $('#groupToggle').addEventListener('change', e => { state.grouped = e.target.checked; renderTable(); });
+  $$('#prodTable th button').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.key;
+    if (state.sort.key === k) state.sort.dir *= -1;
+    else state.sort = { key: k, dir: (k === 'name' || k === 'dev' || k === 'pct') ? 1 : -1 };
+    renderTable();
+  }));
+  $('#legend4').addEventListener('mouseover', e => {
+    const li = e.target.closest('li'); if (!li) return;
+    const i = +li.dataset.seg; highlightSeg(i);
+    if (hasCharts) { charts.b4.setActiveElements([{ datasetIndex: 0, index: i }]); charts.b4.update('none'); }
+  });
+  $('#legend4').addEventListener('mouseleave', () => {
+    highlightSeg(null);
+    if (hasCharts) { charts.b4.setActiveElements([]); charts.b4.update('none'); }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea') return;
+    const k = e.key;
+    if (k === 'Escape') { if (state.tv) exitTv(); $('#narrow').classList.remove('show'); return; }
+    if (tag === 'select' && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown')) return;
+    if (k === 'ArrowLeft') { e.preventDefault(); setState({ month: state.month - 1 }); }
+    else if (k === 'ArrowRight') { e.preventDefault(); setState({ month: state.month + 1 }); }
+    else if (k === 'm' || k === 'M' || k === 'ь' || k === 'Ь') setState({ mode: state.mode === 'ytd' ? 'month' : 'ytd' });
+    else if (k === 't' || k === 'T' || k === 'е' || k === 'Е') state.tv ? exitTv() : enterTv();
+    else if (k === 'p' || k === 'P' || k === 'з' || k === 'З') { e.preventDefault(); window.print(); }
+  });
+
+  window.addEventListener('hashchange', () => {
+    const h = readHash();
+    if (h.tv && !state.tv) enterTv(false);
+    else if (!h.tv && state.tv) exitTv();
+    setState({ mode: h.mode || state.mode, month: h.month || state.month });
+  });
+
+  // Плашка для узких экранов
+  let narrowDismissed = false;
+  const checkNarrow = () => $('#narrow').classList.toggle('show', !narrowDismissed && window.innerWidth < 1280);
+  $('#narrowClose').addEventListener('click', () => { narrowDismissed = true; checkNarrow(); });
+  checkNarrow();
+
+  let rt = null;
+  window.addEventListener('resize', () => {
+    checkNarrow();
+    clearTimeout(rt);
+    rt = setTimeout(() => { applyTvToCharts(); renderKpis(); renderEvents(); }, 150);
+  });
+}
+
+/* ============================== ИНИЦИАЛИЗАЦИЯ ============================== */
+function init() {
+  validateData();
+  const dd = M.dataDate.split('-');
+  $('#hdrTitle').textContent = `${M.shortName} · Производственные показатели ${YEAR}`;
+  $('#hdrSub').textContent = `Данные на ${dd[2]}.${dd[1]}.${dd[0]} · ${M.unit}`;
+  document.title = `${M.shortName} · Производственная панель ${YEAR}`;
+
+  const h = readHash();
+  if (h.mode) state.mode = h.mode;
+  if (h.month) state.month = h.month;
+  P = getPeriodData(state.mode, state.month);
+
+  bindUi();
+  if (hasCharts) initCharts();
+  else document.body.classList.add('no-charts');
+  writeHash();
+  update();
+
+  tickClock();
+  setTimeout(() => { tickClock(); setInterval(tickClock, 60000); }, (60 - new Date().getSeconds()) * 1000);
+
+  if (h.tv) enterTv(false);
+}
+
+init();
+})();
+</script>
+</body>
+</html>
